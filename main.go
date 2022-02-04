@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -21,18 +22,39 @@ type ChessPiece struct {
 
 func main() {
 	//initialize values here
+
 	var selectedPiece string
+	var selectedPosition string
+
+	gameBoard := create_gameboard()
 
 	//game loop
-	// for true {
+	for {
 
-	// }
+		draw_gameboard(gameBoard)
+		fmt.Printf("\nEnter the position of a piece to move.")
+		fmt.Scanf("\nPosition: %s", &selectedPiece)
+		startingPosition := get_piece(selectedPiece, gameBoard)
+		fmt.Printf("\nEnter the position of where the piece will move.")
+		fmt.Scanf("\nPosition: %s", &selectedPosition)
+		newPosition := get_piece(selectedPosition, gameBoard)
+		updateGameBoard(startingPosition, newPosition)
 
-	//testing area
-	gameBoard := create_gameboard()
-	draw_gameboard(gameBoard)
-	fmt.Printf("\nEnter the position of a piece to move.")
-	fmt.Scanf("\nPosition: %s", &selectedPiece)
+	}
+
+	// //testing area
+	// gameBoard := create_gameboard()
+	// draw_gameboard(gameBoard)
+	// fmt.Printf("\nEnter the position of a piece to move.")
+	// fmt.Scanf("\nPosition: %s", &selectedPiece)
+	// startingPosition := get_piece(selectedPiece, gameBoard)
+	// fmt.Printf("\nEnter the position of where the piece will move.")
+	// fmt.Scanf("\nPosition: %s", &selectedPosition)
+	// newPosition := get_piece(selectedPosition, gameBoard)
+	// updateGameBoard(startingPosition, newPosition)
+
+	// print(color.Ize(color.Cyan, "Test"))
+	// println(color.Ize(color.Green, "Test2"))
 
 }
 
@@ -56,13 +78,18 @@ func get_piece(
 	gameboard [8][8]ChessPiece) ChessPiece {
 
 	//break this into multiple functions later
-
+	var inputError error //change this later on
 	var verticalPosition int
 	var horizontalPosition int
 
-	if len(selectedPiece) != 2 {
-		//return error, add later
+	if selectedPiece == "exit" {
+		println("Exit")
+		os.Exit(3)
 	}
+
+	// if len(selectedPiece) != 2 {
+	// 	//return error, add later
+	// }
 
 	for i := 0; i < len(selectedPiece); i++ {
 		if i == 0 {
@@ -73,17 +100,35 @@ func get_piece(
 				fmt.Println(err)
 				os.Exit(2)
 			}
-			verticalPosition = get_vertical_input_element_valu(k)
+			verticalPosition, inputError = get_vertical_input_element_value(k)
+			if inputError != nil {
+				println(inputError)
+				os.Exit(3)
+			}
 		}
 		if i == 1 {
 			k := string(
 				selectedPiece[i])
-			horizontalPosition = get_horizontal_input_element_value(k)
+			horizontalPosition, inputError = get_horizontal_input_element_value(k)
+			if inputError != nil {
+				println(inputError)
+				os.Exit(3)
+			}
 		}
 	}
 
 	return gameboard[verticalPosition][horizontalPosition]
 
+}
+
+func updateGameBoard(
+	startPosition ChessPiece,
+	newPosition ChessPiece) {
+
+	newPosition.color = startPosition.color
+	newPosition.pieceType = startPosition.pieceType
+	startPosition.color = ""
+	startPosition.pieceType = " "
 }
 
 func create_gameboard() [8][8]ChessPiece {
@@ -119,29 +164,29 @@ func create_gameboard() [8][8]ChessPiece {
 }
 
 //get better name
-func get_vertical_input_element_valu(elementValue int) int {
-	//clean this up, no need for a variable declaration before the loop
-	var value int
-	//add error handling incase its a bad user input
+func get_vertical_input_element_value(
+	elementValue int) (
+	int,
+	error) {
 	for i := 0; i < len(verticalInput); i++ {
 		if verticalInput[i] == elementValue {
-			value = i
+			return i, nil
 		}
 	}
-
-	return value
+	return -1, errors.New(
+		"input error for vertical position")
 }
 
 //get better name
-func get_horizontal_input_element_value(elementValue string) int {
-	//clean this up, no need for a variable declaration before the loop
-	var value int
-	//add error handling incase its a bad user input
+func get_horizontal_input_element_value(
+	elementValue string) (
+	int,
+	error) {
 	for i := 0; i < len(horizontalInput); i++ {
 		if horizontalInput[i] == elementValue {
-			value = i
+			return i, nil
 		}
 	}
-
-	return value
+	return -1, errors.New(
+		"input error for horizontal position")
 }
